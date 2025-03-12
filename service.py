@@ -7,7 +7,7 @@ import sys
 import os
 
 # Registry key path
-REGISTRY_PATH = r"SOFTWARE\Service"
+REGISTRY_PATH = r"SOFTWARE\PythonService"
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
