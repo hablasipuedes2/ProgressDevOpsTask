@@ -38,13 +38,11 @@ class PythonService(win32serviceutil.ServiceFramework):
         self.stop_event = win32event.CreateEvent(None, 0, 0, None)
 
     def SvcStop(self):
-        """Handle stop signal from Windows Service Manager."""
         logging.info("Service is stopping...")
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
         win32event.SetEvent(self.stop_event)
 
     def SvcDoRun(self):
-        """Main loop of the service."""
         logging.info("Service is starting...")
         servicemanager.LogInfoMsg("Python Service Started")
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
@@ -61,13 +59,4 @@ class PythonService(win32serviceutil.ServiceFramework):
         logging.info("Service stopped.")
 
 if __name__ == "__main__":
-    try:
-        # Set up logging before starting the main loop
-        log_file_path = read_registry_value("LogFilePath", "C:\\Windows\\Temp\\service.log")
-        setup_logging(log_file_path)
-
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        logging.info("Service stopped manually.")
-    finally:
-        logging.info("Exiting cleanly.")
+    win32serviceutil.HandleCommandLine(PythonService)
