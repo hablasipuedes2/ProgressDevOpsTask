@@ -1,38 +1,18 @@
-import asyncio
+import win32serviceutil
+import win32service
+import win32event
+import servicemanager
 import logging
 import time
 import winreg
-import signal
 import sys
 import os
 
 # Registry key path
 REGISTRY_PATH = r"SOFTWARE\PythonService"
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-
-# Remove any existing handlers (if any, e.g., StreamHandler for stdout)
-if logger.hasHandlers():
-    logger.handlers.clear()
-
-def setup_logging(log_file_path):
-    # Console handler (prints logs to the console)
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(logging.INFO)
-
-    # File handler (logs to a file)
-    file_handler = logging.FileHandler(log_file_path)
-    file_handler.setLevel(logging.INFO)
-
-    # Log formatter
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    console_handler.setFormatter(formatter)
-    file_handler.setFormatter(formatter)
-
-    # Add both handlers to the logger
-    logger.addHandler(console_handler)
-    logger.addHandler(file_handler)
+LOG_FILE = "C:\\Windows\\Temp\\PythonService.log"
+logging.basicConfig(filename=LOG_FILE, level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 def read_registry_value(name, default):
     try:
@@ -46,26 +26,39 @@ def read_registry_value(name, default):
         logging.error(f"Error reading registry key {name}: {e}")
         return default
 
-async def service_loop():
+class PythonService(win32serviceutil.ServiceFramework):
+    """Python Windows Service"""
+    
+    _svc_name_ = "PythonService"
+    _svc_display_name_ = "Python Service Example"
+    _svc_description_ = "A sample Windows service that logs messages periodically."
 
-    # Read registry values
-    log_interval = int(read_registry_value("LogInterval", 10))
+    def __init__(self, args):
+        super().__init__(args)
+        self.stop_event = win32event.CreateEvent(None, 0, 0, None)
 
-    logging.info("Service Logger Started")
+    def SvcStop(self):
+        """Handle stop signal from Windows Service Manager."""
+        logging.info("Service is stopping...")
+        self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
+        win32event.SetEvent(self.stop_event)
 
-    while True:
-        logging.info("Hello World")
-        await asyncio.sleep(log_interval)
+    def SvcDoRun(self):
+        """Main loop of the service."""
+        logging.info("Service is starting...")
+        servicemanager.LogInfoMsg("Python Service Started")
+        self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
-def handle_signal(signum, frame):
-    logging.info(f"Received termination signal {signum}. Shutting down gracefully...")
-    exit(0)
+        # Read registry values
+        log_interval = int(read_registry_value("LogInterval", 10))
 
-async def main():
-    signal.signal(signal.SIGTERM, handle_signal)
-    signal.signal(signal.SIGINT, handle_signal)  # Handles Ctrl+C for testing
+        while True:
+            result = win32event.WaitForSingleObject(self.stop_event, log_interval * 1000)
+            if result == win32event.WAIT_OBJECT_0:
+                break  # Stop signal received
+            logging.info("Hello World!")
 
-    await service_loop()
+        logging.info("Service stopped.")
 
 if __name__ == "__main__":
     try:
