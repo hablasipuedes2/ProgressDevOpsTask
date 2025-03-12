@@ -13,24 +13,25 @@ function Create-RegistryEntries {
 }
 
 function Install-Service {
-    $binPath = "`"$pythonExe`" `"$scriptPath`""  # Service execution path
-
-    # Create service with LocalService virtual account
-    sc.exe create PythonService binPath= "C:\Program Files\Python313\python.exe C:\Users\valushka\service.py" start= auto obj= "NT AUTHORITY\LocalService" type= own
+    # Install the service using pywin32
+    & $pythonExe $scriptPath install
     
+    # Set service to run as LocalService
+    sc.exe config $serviceName obj= "NT AUTHORITY\LocalService"
+
     if ($LASTEXITCODE -eq 0) {
         Write-Host "Service installed successfully."
         Start-Service -Name $serviceName
         Write-Host "Service started."
         Create-RegistryEntries
     } else {
-        Write-Host "Failed to create service."
+        Write-Host "Failed to create service. Ensure you're running this script as Administrator."
     }
 }
 
 function Uninstall-Service {
     Stop-Service -Name $serviceName -Force -ErrorAction SilentlyContinue
-    sc.exe delete $serviceName
+    & $pythonExe $scriptPath remove
     Remove-Item -Path $regPath -Recurse -Force -ErrorAction SilentlyContinue
     Write-Host "Service uninstalled successfully."
 }
