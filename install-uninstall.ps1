@@ -1,6 +1,6 @@
 $serviceName = "PythonService"
 $scriptPath = "C:\Users\valushka\service.py"
-$pythonExe = "C:\Program Files\Python313\python.exe"
+$pythonExe = "C:\Users\valushka\PythonServiceVenv\Scripts\python.exe"
 $regPath = "HKLM:\SOFTWARE\PythonService"
 
 function Create-RegistryEntries {
