@@ -27,6 +27,7 @@ function Install-Service {
     if ($LASTEXITCODE -eq 0) {
         Write-Host "Service installed successfully."
         Start-Service -Name $serviceName
+        Set-Service -Name $serviceName -StartupType Automatic
         Write-Host "Service started."
     } else {
         Write-Host "Failed to create service. Ensure you're running this script as Administrator."
