@@ -4,7 +4,7 @@ $regPath = "HKLM:\SOFTWARE\PythonService"
 $cwd = (Get-Item .).FullName
 
 function Create-RegistryEntries {
-    if (!(Test-Path $regPath)) {
+    if (!(Reg-Path $regPath)) {
         New-Item -Path $regPath -Force | Out-Null
     }
     Set-ItemProperty -Path $regPath -Name "LogFilePath" -Value "${cwd}\PythonService.log"
@@ -39,6 +39,13 @@ function Uninstall-Service {
     & $pythonExe remove
     Remove-Item -Path $regPath -Recurse -Force -ErrorAction SilentlyContinue
     Write-Host "Service uninstalled successfully."
+    # Remove the registry key
+    if (Reg-Path $regPath) {
+        Remove-Item -Path $regPath -Recurse -Force
+        Write-Host "Service registry entry removed: $regPath"
+    } else {
+        Write-Host "Service registry entry not found: $regPath"
+    }
 }
 
 # Ensure the script is running as Administrator (for installation only)
