@@ -68,4 +68,4 @@ Logs are stored in the file specified in the registry (default: `PythonService.l
 - Restart the service if it is not running.
 
 ## Known issues:
-- The `install-uninstall.ps1` script is failing to start the service due to `The Python Service Example service terminated with the following service-specific error: Incorrect function.`
+- The `install-uninstall.ps1` script is failing to start the service due to `The Python Service Example service terminated with the following service-specific error: Incorrect function.` This issue appeared after setting up the Service Virtual Account. Therefore, to see the service fully functioning, the Service Virtual Account should be removed.
